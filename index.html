@@ -358,6 +358,19 @@
             font-size: 12px;
             margin: 4px 0;
         }
+
+        .stats {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border: 1px solid var(--tg-theme-hint-color, #ccc);
+            border-radius: 8px;
+        }
+
+        .stats p {
+            margin: 0 0 10px;
+            font-size: 16px;
+        }
     </style>
 </head>
 
@@ -579,6 +592,11 @@
     <div class="hint">
         <span id="cur_activity"></span><span id="prev_activity"></span>
     </div>
+</section>
+
+<section class="stats">
+    <p id="total_time">Ваше общее время работы с MiniApp: 0 секунд</p>
+    <p id="session_time">Текущий сеанс: 0 секунд</p>
 </section>
 
 <div class="safe-area-border"></div>
@@ -1829,6 +1847,62 @@
     try {
         DemoApp.activityInit();
     } catch(e) {}
+</script>
+<script>
+    const serverUrl = "http://127.0.0.1:5000/update_activity";
+    let sessionStartTime = Date.now();
+    let totalTime = 0;
+
+    // Получение общего времени из сервера
+    async function fetchTotalTime() {
+        const user = Telegram.WebApp.initDataUnsafe.user;
+        if (!user) return;
+
+        try {
+            const response = await fetch(`${serverUrl}?id=${user.id}`);
+            if (response.ok) {
+                const data = await response.json();
+                totalTime = data.total_time || 0;
+                document.getElementById("total_time").innerText = `Ваше общее время работы с MiniApp: ${totalTime} секунд`;
+            }
+        } catch (err) {
+            console.error("Ошибка загрузки общего времени:", err);
+        }
+    }
+
+    // Обновление текущего сеанса
+    function updateSessionTime() {
+        const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+        document.getElementById("session_time").innerText = `Текущий сеанс: ${elapsed} секунд`;
+        setTimeout(updateSessionTime, 1000);
+    }
+
+    // Отправка данных на сервер
+    async function sendSessionData() {
+        const user = Telegram.WebApp.initDataUnsafe.user;
+        if (!user) return;
+
+        const sessionTime = Math.floor((Date.now() - sessionStartTime) / 1000);
+        try {
+            await fetch(serverUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    user: user,
+                    session_time: sessionTime
+                })
+            });
+        } catch (err) {
+            console.error("Ошибка отправки данных:", err);
+        }
+    }
+
+    // Инициализация
+    Telegram.WebApp.onEvent('activated', fetchTotalTime);
+    Telegram.WebApp.onEvent('deactivated', sendSessionData);
+
+    fetchTotalTime();
+    updateSessionTime();
 </script>
 
 </body>
