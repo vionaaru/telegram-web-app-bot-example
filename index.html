@@ -626,6 +626,12 @@
             document.body.style.visibility = '';
             Telegram.WebApp.ready();
 
+            DemoApp.close = function() {
+                console.log("Closing Webview...");
+                sendSessionData(); // Отправка данных перед закрытием
+                Telegram.WebApp.close(); // Закрытие приложения
+            };
+
             Telegram.WebApp.MainButton.setParams({
                 text: 'Close Webview',
                 has_shine_effect: true,
