@@ -1862,6 +1862,10 @@
     const serverUrl = "http://127.0.0.1:5000/update_activity";
     let sessionStartTime = Date.now();
     let totalTime = 0;
+    console.log("Telegram WebApp initDataUnsafe:", Telegram.WebApp.initDataUnsafe);
+    console.log("initData:", Telegram.WebApp.initData);
+
+
 
     // Получение общего времени из сервера
     async function fetchTotalTime() {
@@ -1885,43 +1889,48 @@
         }
     }
 
-async function sendSessionData() {
-    // Заглушка для тестирования вне Telegram
-    if (!Telegram.WebApp.initDataUnsafe.user) {
-        Telegram.WebApp.initDataUnsafe.user = {
-            id: 1841318147,
-            first_name: "Test",
-            last_name: "User",
-            username: "testuser",
-            language_code: "en"
-        };
-        console.log("Emulated user data:", Telegram.WebApp.initDataUnsafe.user);
-    }
-
-    const user = Telegram.WebApp.initDataUnsafe.user;
-    console.log("User data in sendSessionData:", user); // Проверка данных
-    if (!user) return;
-
-    const sessionTime = Math.floor((Date.now() - sessionStartTime) / 1000);
-    console.log("Session time:", sessionTime); // Проверка времени
-
-    try {
-        const response = await fetch(serverUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                user: user,
-                session_time: sessionTime
-            })
-        });
-        console.log("Response status in sendSessionData:", response.status); // Проверка ответа
-        if (!response.ok) {
-            console.error("Ошибка отправки данных:", response.statusText);
+    async function sendSessionData() {
+        // Заглушка для тестирования вне Telegram
+        if (!Telegram.WebApp.initDataUnsafe.user) {
+            Telegram.WebApp.initDataUnsafe.user = {
+                id: 1841318147,
+                first_name: "Test",
+                last_name: "User",
+                username: "testuser",
+                language_code: "en"
+            };
+            console.log("Emulated user data:", Telegram.WebApp.initDataUnsafe.user);
         }
-    } catch (err) {
-        console.error("Ошибка отправки данных:", err);
+
+        const user = Telegram.WebApp.initDataUnsafe.user;
+        console.log("User data in sendSessionData:", user); // Проверка данных
+        if (!Telegram.WebApp.initDataUnsafe || !Telegram.WebApp.initDataUnsafe.user) {
+            console.error("Ошибка: Telegram WebApp initDataUnsafe пустой");
+            return;
+        }
+
+        if (!user) return;
+
+        const sessionTime = Math.floor((Date.now() - sessionStartTime) / 1000);
+        console.log("Session time:", sessionTime); // Проверка времени
+
+        try {
+            const response = await fetch(serverUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    user: user,
+                    session_time: sessionTime
+                })
+            });
+            console.log("Response status in sendSessionData:", response.status); // Проверка ответа
+            if (!response.ok) {
+                console.error("Ошибка отправки данных:", response.statusText);
+            }
+        } catch (err) {
+            console.error("Ошибка отправки данных:", err);
+        }
     }
-}
 
     // Обновление текущего сеанса
     function updateSessionTime() {
