@@ -1885,32 +1885,43 @@
         }
     }
 
-    // Отправка данных на сервер
-    async function sendSessionData() {
-        const user = Telegram.WebApp.initDataUnsafe.user;
-        console.log("User data in sendSessionData:", user); // Отладка
-        if (!user) return;
-
-        const sessionTime = Math.floor((Date.now() - sessionStartTime) / 1000);
-        console.log("Session time:", sessionTime); // Отладка
-
-        try {
-            const response = await fetch(serverUrl, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    user: user,
-                    session_time: sessionTime
-                })
-            });
-            console.log("Response status in sendSessionData:", response.status); // Отладка
-            if (!response.ok) {
-                console.error("Ошибка отправки данных:", response.statusText);
-            }
-        } catch (err) {
-            console.error("Ошибка отправки данных:", err);
-        }
+async function sendSessionData() {
+    // Заглушка для тестирования вне Telegram
+    if (!Telegram.WebApp.initDataUnsafe.user) {
+        Telegram.WebApp.initDataUnsafe.user = {
+            id: 1841318147,
+            first_name: "Test",
+            last_name: "User",
+            username: "testuser",
+            language_code: "en"
+        };
+        console.log("Emulated user data:", Telegram.WebApp.initDataUnsafe.user);
     }
+
+    const user = Telegram.WebApp.initDataUnsafe.user;
+    console.log("User data in sendSessionData:", user); // Проверка данных
+    if (!user) return;
+
+    const sessionTime = Math.floor((Date.now() - sessionStartTime) / 1000);
+    console.log("Session time:", sessionTime); // Проверка времени
+
+    try {
+        const response = await fetch(serverUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                user: user,
+                session_time: sessionTime
+            })
+        });
+        console.log("Response status in sendSessionData:", response.status); // Проверка ответа
+        if (!response.ok) {
+            console.error("Ошибка отправки данных:", response.statusText);
+        }
+    } catch (err) {
+        console.error("Ошибка отправки данных:", err);
+    }
+}
 
     // Обновление текущего сеанса
     function updateSessionTime() {
