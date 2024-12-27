@@ -631,7 +631,7 @@
             Telegram.WebApp.ready();
 
             DemoApp.close = function() {
-                console.log("Closing Webview...");
+                sendLogToServer("Closing Webview...");
                 sendSessionData(); // Отправка данных перед закрытием
                 Telegram.WebApp.close(); // Закрытие приложения
             };
@@ -958,9 +958,9 @@
 
         // version to string Example: '6.9'
         doesntSupport(version) {
-            // console.log("version: " + version);
-            // console.log("realVersion: " + this.version());
-            // console.log("doesntSupport: " + this.isVersionAtLeast(version));
+            // sendLogToServer("version: " + version);
+            // sendLogToServer("realVersion: " + this.version());
+            // sendLogToServer("doesntSupport: " + this.isVersionAtLeast(version));
             if (!this.isVersionAtLeast(version)) {
                 Telegram.WebApp.showAlert('This feature is not supported in this version of Telegram', function () {
                     Telegram.WebApp.close();
@@ -1862,23 +1862,31 @@
     const serverUrl = "http://127.0.0.1:5000/update_activity";
     let sessionStartTime = Date.now();
     let totalTime = 0;
-    console.log("Telegram WebApp initDataUnsafe:", Telegram.WebApp.initDataUnsafe);
-    console.log("initData:", Telegram.WebApp.initData);
 
+    // Функция для отправки логов на сервер Flask
+    function sendLogToServer(log) {
+        fetch("http://127.0.0.1:5000/logs", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ log: log })
+        }).catch(err => console.error("Ошибка отправки лога:", err));
+    }
 
+    sendLogToServer("Telegram WebApp initDataUnsafe:", Telegram.WebApp.initDataUnsafe);
+    sendLogToServer("initData:", Telegram.WebApp.initData);
 
     // Получение общего времени из сервера
     async function fetchTotalTime() {
         const user = Telegram.WebApp.initDataUnsafe.user;
-        console.log("User data:", user); // Лог для проверки
+        sendLogToServer("User data:", user); // Лог для проверки
         if (!user) return;
 
         try {
             const response = await fetch(`${serverUrl}?id=${user.id}`);
-            console.log("Response status:", response.status); // Лог статуса ответа
+            sendLogToServer("Response status:", response.status); // Лог статуса ответа
             if (response.ok) {
                 const data = await response.json();
-                console.log("Data received:", data); // Лог полученных данных
+                sendLogToServer("Data received:", data); // Лог полученных данных
                 totalTime = data.total_time || 0;
                 document.getElementById("total_time").innerText = `Ваше общее время работы с MiniApp: ${totalTime} секунд`;
             } else {
@@ -1899,11 +1907,11 @@
                 username: "testuser",
                 language_code: "en"
             };
-            console.log("Emulated user data:", Telegram.WebApp.initDataUnsafe.user);
+            sendLogToServer("Emulated user data:", Telegram.WebApp.initDataUnsafe.user);
         }
 
         const user = Telegram.WebApp.initDataUnsafe.user;
-        console.log("User data in sendSessionData:", user); // Проверка данных
+        sendLogToServer("User data in sendSessionData:", user); // Проверка данных
         if (!Telegram.WebApp.initDataUnsafe || !Telegram.WebApp.initDataUnsafe.user) {
             console.error("Ошибка: Telegram WebApp initDataUnsafe пустой");
             return;
@@ -1912,7 +1920,7 @@
         if (!user) return;
 
         const sessionTime = Math.floor((Date.now() - sessionStartTime) / 1000);
-        console.log("Session time:", sessionTime); // Проверка времени
+        sendLogToServer("Session time:", sessionTime); // Проверка времени
 
         try {
             const response = await fetch(serverUrl, {
@@ -1923,7 +1931,7 @@
                     session_time: sessionTime
                 })
             });
-            console.log("Response status in sendSessionData:", response.status); // Проверка ответа
+            sendLogToServer("Response status in sendSessionData:", response.status); // Проверка ответа
             if (!response.ok) {
                 console.error("Ошибка отправки данных:", response.statusText);
             }

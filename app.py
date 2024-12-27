@@ -44,7 +44,6 @@ def update_user_activity(user_data, session_time):
 
 # Маршрут для обновления активности
 @app.route("/update_activity", methods=["GET", "POST"])
-
 def update_activity():
     if request.method == "GET":
         # Получение общего времени для конкретного пользователя
@@ -80,6 +79,16 @@ def update_activity():
 def get_users():
     users = list(users_collection.find({}, {"_id": 0}))  # Исключаем _id из вывода
     return jsonify(users)
+
+
+# Маршрут для получения логов
+@app.route("/logs", methods=["POST"])
+def logs():
+    data = request.json
+    if not data or "log" not in data:
+        return jsonify({"error": "No log provided"}), 400
+    print(f"LOG: {data['log']}")
+    return jsonify({"status": "log received"}), 200
 
 
 if __name__ == "__main__":
