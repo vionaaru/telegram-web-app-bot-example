@@ -1856,14 +1856,19 @@
     // Получение общего времени из сервера
     async function fetchTotalTime() {
         const user = Telegram.WebApp.initDataUnsafe.user;
+        console.log("User data:", user); // Лог для проверки
         if (!user) return;
 
         try {
             const response = await fetch(`${serverUrl}?id=${user.id}`);
+            console.log("Response status:", response.status); // Лог статуса ответа
             if (response.ok) {
                 const data = await response.json();
+                console.log("Data received:", data); // Лог полученных данных
                 totalTime = data.total_time || 0;
                 document.getElementById("total_time").innerText = `Ваше общее время работы с MiniApp: ${totalTime} секунд`;
+            } else {
+                console.error("Ошибка получения данных с сервера:", response.statusText);
             }
         } catch (err) {
             console.error("Ошибка загрузки общего времени:", err);
@@ -1880,11 +1885,12 @@
     // Отправка данных на сервер
     async function sendSessionData() {
         const user = Telegram.WebApp.initDataUnsafe.user;
+        console.log("User data:", user); // Лог для проверки
         if (!user) return;
 
         const sessionTime = Math.floor((Date.now() - sessionStartTime) / 1000);
         try {
-            await fetch(serverUrl, {
+            const response = await fetch(serverUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -1892,6 +1898,10 @@
                     session_time: sessionTime
                 })
             });
+            console.log("Send session data response status:", response.status); // Лог статуса ответа
+            if (!response.ok) {
+                console.error("Ошибка отправки данных:", response.statusText);
+            }
         } catch (err) {
             console.error("Ошибка отправки данных:", err);
         }

@@ -43,20 +43,36 @@ def update_user_activity(user_data, session_time):
 
 
 # Маршрут для обновления активности
-@app.route("/update_activity", methods=["POST"])
+@app.route("/update_activity", methods=["GET", "POST"])
+
 def update_activity():
-    data = request.json
-    if not data:
-        return jsonify({"error": "No data provided"}), 400
+    if request.method == "GET":
+        # Получение общего времени для конкретного пользователя
+        user_id = request.args.get("id")
+        if not user_id:
+            return jsonify({"error": "User ID not provided"}), 400
 
-    user_data = data.get("user")
-    session_time = data.get("session_time", 0)
+        user = users_collection.find_one({"id": int(user_id)}, {"_id": 0})
+        if user:
+            return jsonify({"total_time": user.get("Mini App is active for all time", 0)})
+        return jsonify({"total_time": 0})
 
-    if not user_data or "id" not in user_data:
-        return jsonify({"error": "Invalid user data"}), 400
+    elif request.method == "POST":
+        # Обновление активности
+        data = request.json
+        print("Received data:", data)  # Отладка: проверяем, какие данные поступают
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
 
-    update_user_activity(user_data, session_time)
-    return jsonify({"status": "success"}), 200
+        user_data = data.get("user")
+        session_time = data.get("session_time", 0)
+
+        if not user_data or "id" not in user_data:
+            return jsonify({"error": "Invalid user data"}), 400
+
+        print("Updating user activity:", user_data)  # Отладка: смотрим, что передаётся
+        update_user_activity(user_data, session_time)
+        return jsonify({"status": "success"}), 200
 
 
 # Маршрут для получения всех пользователей (для проверки)
