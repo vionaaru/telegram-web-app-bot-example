@@ -599,6 +599,10 @@
     <p id="session_time">Текущий сеанс: 0 секунд</p>
 </section>
 
+<section>
+    <button id="send_time_btn" onclick="sendSessionData()">Отправить время</button>
+</section>
+
 <div class="safe-area-border"></div>
 <div class="tg-safe-area-border">
     <div class="tg-content-safe-area-border"></div>
@@ -1881,20 +1885,15 @@
         }
     }
 
-    // Обновление текущего сеанса
-    function updateSessionTime() {
-        const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
-        document.getElementById("session_time").innerText = `Текущий сеанс: ${elapsed} секунд`;
-        setTimeout(updateSessionTime, 1000);
-    }
-
     // Отправка данных на сервер
     async function sendSessionData() {
         const user = Telegram.WebApp.initDataUnsafe.user;
-        console.log("User data:", user); // Лог для проверки
+        console.log("User data in sendSessionData:", user); // Отладка
         if (!user) return;
 
         const sessionTime = Math.floor((Date.now() - sessionStartTime) / 1000);
+        console.log("Session time:", sessionTime); // Отладка
+
         try {
             const response = await fetch(serverUrl, {
                 method: "POST",
@@ -1904,7 +1903,7 @@
                     session_time: sessionTime
                 })
             });
-            console.log("Send session data response status:", response.status); // Лог статуса ответа
+            console.log("Response status in sendSessionData:", response.status); // Отладка
             if (!response.ok) {
                 console.error("Ошибка отправки данных:", response.statusText);
             }
@@ -1913,7 +1912,13 @@
         }
     }
 
-    // Инициализация
+    // Обновление текущего сеанса
+    function updateSessionTime() {
+        const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+        document.getElementById("session_time").innerText = `Текущий сеанс: ${elapsed} секунд`;
+        setTimeout(updateSessionTime, 1000);
+    }
+
     Telegram.WebApp.onEvent('activated', fetchTotalTime);
     Telegram.WebApp.onEvent('deactivated', sendSessionData);
 
